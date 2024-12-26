@@ -26,11 +26,24 @@ resource "aws_instance" "blog" {
   ami           = data.aws_ami.app_ami.id // ami = basic image to use
   instance_type = var.instance_type
 
-  vpc_security_group_ids = [aws_security_group.blog.id]
+  vpc_security_group_ids = [module.blog_sg.security_group_id]
 
   tags = {
     Name = "HelloWorld"
   }
+}
+
+// a module is a group of resources
+module "blog_sg" {
+  source  = "terraform-aws-modules/security-group/aws"
+  version = "5.2.0"
+  name    = "blog-from-module"
+
+  vpc_id              = data.aws_vpc.default.id // from the data block above
+  ingress_rules       = ["http-80-tcp", "https-443-tcp"]
+  ingress_cidr_blocks = ["0.0.0.0/0"] // = open to everything
+  egress_rules       = ["all-all"]
+  egress_cidr_blocks = ["0.0.0.0/0"] // = open to everything
 }
 
 resource "aws_security_group" "blog" {
@@ -62,8 +75,8 @@ resource "aws_security_group_rule" "blog_https_in" {
 
 resource "aws_security_group_rule" "blog_everything_out" {
   type        = "egress"
-  from_port   = 0 // all ports
-  to_port     = 0 // all ports
+  from_port   = 0    // all ports
+  to_port     = 0    // all ports
   protocol    = "-1" // = all protocols
   cidr_blocks = ["0.0.0.0/0"]
 
