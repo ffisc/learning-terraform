@@ -1,3 +1,4 @@
+// data sources get information about deployed infrastructure
 data "aws_ami" "app_ami" {
   most_recent = true
 
