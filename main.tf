@@ -1,4 +1,5 @@
 # data sources get information about deployed infrastructure
+# they're like variables but allow retrieving data from other places
 data "aws_ami" "app_ami" {
   most_recent = true
 
@@ -59,8 +60,6 @@ module "blog_autoscaling" {
   traffic_source_attachments = {
     alb_target_group = {
       type     = "elb"
-      # resource = module.blog_alb.arn
-      # identifier = module.blog_alb.arn
       traffic_source_identifier = module.blog_alb.arn
     }
   }
@@ -77,6 +76,7 @@ module "blog_autoscaling" {
 
 module "blog_alb" {
   source = "terraform-aws-modules/alb/aws"
+  version = "~> 9.0"
 
   name            = "blog-alb" # will be used by aws
   vpc_id          = module.blog_vpc.vpc_id
@@ -125,6 +125,7 @@ module "blog_alb" {
       port        = 80
       target_type = "instance"
       target_id   = module.blog_autoscaling.autoscaling_group_id
+      create_attachment = false
     }
   }
 
