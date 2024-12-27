@@ -76,6 +76,9 @@ module "blog_alb" {
   subnets         = module.blog_vpc.public_subnets
   security_groups = [module.blog_sg.security_group_id]
 
+  # Ensure the autoscaling group is created before attaching instances to the target group
+  depends_on = [ module.autoscaling ]
+
   # Security Group
   #todo: figure out how to use the same rules as in module.blog_sg, maybe refactor them out?
   security_group_ingress_rules = {
@@ -117,7 +120,6 @@ module "blog_alb" {
       protocol    = "HTTP"
       port        = 80
       target_type = "instance"
-      # target_id   = aws_instance.blog.id
       target_id   = module.autoscaling.autoscaling_group_id
     }
   }
