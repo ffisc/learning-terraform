@@ -58,11 +58,12 @@ module "blog_autoscaling" {
   vpc_zone_identifier = module.blog_vpc.public_subnets
   traffic_source_attachments = {
     alb_target_group = {
-      type = "elb"
-      resource = module.blog_alb.arn
+      type     = "elb"
+      # resource = module.blog_alb.arn
+      identifier = module.blog_alb.arn
     }
   }
-  security_groups     = [module.blog_sg.security_group_id]
+  security_groups = [module.blog_sg.security_group_id]
 
   # application config
   image_id      = data.aws_ami.app_ami.id
