@@ -46,7 +46,7 @@ module "blog_vpc" {
 # }
 
 # Replaces the instance above
-module "autoscaling" {
+module "blog_autoscaling" {
   source   = "terraform-aws-modules/autoscaling/aws"
   version  = "8.0.1"
   name     = "blog"
@@ -56,8 +56,13 @@ module "autoscaling" {
 
   # network config
   vpc_zone_identifier = module.blog_vpc.public_subnets
-  # target_group_arns = # no longer applies?
-  security_groups = [module.blog_sg.security_group_id]
+  traffic_source_attachments = {
+    alb_target_group = {
+      type = "elb"
+      resource = module.blog_alb.arn
+    }
+  }
+  security_groups     = [module.blog_sg.security_group_id]
 
   # application config
   image_id      = data.aws_ami.app_ami.id
@@ -75,9 +80,6 @@ module "blog_alb" {
   vpc_id          = module.blog_vpc.vpc_id
   subnets         = module.blog_vpc.public_subnets
   security_groups = [module.blog_sg.security_group_id]
-
-  # Ensure the autoscaling group is created before attaching instances to the target group
-  depends_on = [ module.autoscaling ]
 
   # Security Group
   #todo: figure out how to use the same rules as in module.blog_sg, maybe refactor them out?
@@ -120,7 +122,7 @@ module "blog_alb" {
       protocol    = "HTTP"
       port        = 80
       target_type = "instance"
-      target_id   = module.autoscaling.autoscaling_group_id
+      target_id   = module.blog_autoscaling.autoscaling_group_id
     }
   }
 
@@ -130,13 +132,11 @@ module "blog_alb" {
   }
 }
 
-# a module is a group of resources
 module "blog_sg" {
   source  = "terraform-aws-modules/security-group/aws"
   version = "5.2.0"
   name    = "blog"
 
-  # vpc_id              = data.aws_vpc.default.id # from the data block above # old
   vpc_id              = module.blog_vpc.vpc_id
   ingress_rules       = ["http-80-tcp", "https-443-tcp"]
   ingress_cidr_blocks = ["0.0.0.0/0"] # = open to everything
