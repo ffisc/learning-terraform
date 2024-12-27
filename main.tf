@@ -124,7 +124,7 @@ module "blog_alb" {
 
   target_groups = { # where to send the traffic to
     ex-instance = {
-      name_prefix = "${var.environment.name}-blog-" # just to make it easier to identify
+      name_prefix = "${var.environment.name}" # just to make it easier to identify
       protocol    = "HTTP"
       port        = 80
       target_type = "instance"
