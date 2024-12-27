@@ -60,7 +60,8 @@ module "blog_autoscaling" {
     alb_target_group = {
       type     = "elb"
       # resource = module.blog_alb.arn
-      identifier = module.blog_alb.arn
+      # identifier = module.blog_alb.arn
+      traffic_source_identifier = module.blog_alb.arn
     }
   }
   security_groups = [module.blog_sg.security_group_id]
